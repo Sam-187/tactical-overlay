@@ -662,7 +662,7 @@ state.theme = theme;
         ${row('opt-grain','Grain',state.grain)}
       </div>
       <div class="we-p-hint">Tip: Shift+Click on ◈ = cycle theme</div>
-      <div class="we-p-footer"><span>TACTICAL OVERLAY</span><span>v1.4.0</span></div>
+      <div class="we-p-footer"><span>TACTICAL OVERLAY</span><span>v1.5.0</span></div>
     `;
     document.body.appendChild(panel);
 
