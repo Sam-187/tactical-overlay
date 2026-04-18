@@ -2,6 +2,8 @@
 // @name         WarEra Tactical Overlay (Fixed)
 // @namespace    https://warera.io/
 // @version      1.4.0
+// @updateURL    https://raw.githubusercontent.com/Sam-187/tactical-overlay/main/WarEra%20Tactical%20Overlay%20(Fixed)-1.4.0.user.js
+// @downloadURL  https://raw.githubusercontent.com/Sam-187/tactical-overlay/main/WarEra%20Tactical%20Overlay%20(Fixed)-1.4.0.user.js
 // @description  Redesigned tactical interface for warera.io – dark military theme with multiple skins. FIXED: Compact buttons, settings in HUD bar
 // @author       WarEra Community
 // @match        *://app.warera.io/*
