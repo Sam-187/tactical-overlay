@@ -668,3 +668,118 @@ state.theme = theme;
 
     panel.querySelector('.we-p-close').addEventListener('click', () => panel.classList.remove('open'));
   
+panel.querySelectorAll('.we-p-theme').forEach((b) => {
+      b.classList.toggle('active', b.dataset.theme === state.theme);
+      b.addEventListener('click', () => applyTheme(b.dataset.theme));
+    });
+
+    [['opt-soft','softColors'],['opt-scanlines','scanlines'],['opt-hud','hud'],['opt-grain','grain']].forEach(([id,k]) => {
+      const el = panel.querySelector('#'+id);
+      if (el) el.addEventListener('change', () => {
+        state[k] = el.checked;
+        storage.set('we_'+k, el.checked);
+        applyOptions();
+      });
+    });
+    console.log('[WarEra Overlay] panel built');
+  }
+
+  function row(id, label, checked) {
+    return `
+      <div class="we-p-row">
+        <span class="we-p-row-label">${label}</span>
+        <label class="we-toggle">
+          <input type="checkbox" id="${id}" ${checked?'checked':''}>
+          <span class="tr"></span><span class="th"></span>
+        </label>
+      </div>`;
+  }
+
+  function togglePanel() {
+    buildPanel();
+    const panel = document.getElementById('we-panel');
+    if (panel) panel.classList.toggle('open');
+  }
+
+  /* ============================================================
+     8) KEYBOARD SHORTCUT
+     ============================================================ */
+  document.addEventListener('keydown', (e) => {
+    if (e.altKey && (e.key === 't' || e.key === 'T')) cycleTheme();
+  });
+
+  /* ============================================================
+     9) TAMPERMONKEY MENU
+     ============================================================ */
+  try {
+    GM_registerMenuCommand('⚙ Open Settings Panel', () => {
+      buildPanel();
+      const p = document.getElementById('we-panel');
+      if (p) p.classList.add('open');
+    });
+    GM_registerMenuCommand('◈ Cycle Theme', cycleTheme);
+    THEMES.forEach((t) => {
+      GM_registerMenuCommand(`  → ${THEME_LABELS[t]}`, () => applyTheme(t));
+    });
+  } catch (_) {}
+
+  /* ============================================================
+     10) INIT
+     ============================================================ */
+  function mount() {
+    injectCSS();
+    if (!document.body) return false;
+    applyTheme(state.theme);
+    applyOptions();
+    buildHUD();
+    buildToggleButton();
+    buildPanel();
+    return true;
+  }
+
+  function waitForBody() {
+    if (mount()) return;
+    const iv = setInterval(() => {
+      if (mount()) clearInterval(iv);
+    }, 100);
+    setTimeout(() => clearInterval(iv), 10000);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', waitForBody, { once: true });
+  } else {
+    waitForBody();
+  }
+
+  /* ── Observer: debounced, re-entry safe ───────────────────── */
+  let rafPending = false;
+  let observerBusy = false;
+
+  function observerTick() {
+    rafPending = false;
+    if (!document.body || observerBusy) return;
+    observerBusy = true;
+    try {
+      if (!document.body.hasAttribute('data-we-theme')) {
+        document.body.setAttribute('data-we-theme', state.theme);
+        document.documentElement.setAttribute('data-we-theme', state.theme);
+      }
+      if (!document.getElementById('we-style'))        injectCSS();
+      if (!document.getElementById('we-hud'))          buildHUD();
+      if (!document.getElementById('we-theme-toggle')) buildToggleButton();
+    } finally {
+      observerBusy = false;
+    }
+                         }
+
+ const obs = new MutationObserver(() => {
+    if (!rafPending) {
+      rafPending = true;
+      requestAnimationFrame(observerTick);
+    }
+  });
+
+  obs.observe(document.documentElement, { childList: true });
+  if (document.body) obs.observe(document.body, { childList: true });
+})();
+   
