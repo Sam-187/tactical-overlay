@@ -548,3 +548,123 @@ body:not(.we-hud-hidden) #we-theme-toggle {
      4) APPLY
      ============================================================ */
   function applyTheme(theme) {
+state.theme = theme;
+    storage.set('we_theme', theme);
+    if (document.body) document.body.setAttribute('data-we-theme', theme);
+    if (document.documentElement) document.documentElement.setAttribute('data-we-theme', theme);
+    document.querySelectorAll('.we-p-theme').forEach((b) => {
+      b.classList.toggle('active', b.dataset.theme === theme);
+    });
+    const btn = document.getElementById('we-theme-toggle');
+    if (btn) btn.title = `Theme: ${THEME_LABELS[theme]}`;
+  }
+
+  function applyOptions() {
+    if (!document.body) return;
+    document.body.classList.toggle('we-scanlines',  state.scanlines);
+    document.body.classList.toggle('we-grain',      state.grain);
+    document.body.classList.toggle('we-hud-hidden', !state.hud);
+    document.body.classList.toggle('we-soft-colors', state.softColors);
+    document.body.style.paddingTop = state.hud ? '32px' : '';
+  }
+
+  function cycleTheme() {
+    const idx = THEMES.indexOf(state.theme);
+    applyTheme(THEMES[(idx + 1) % THEMES.length]);
+  }
+
+  /* ============================================================
+     5) HUD
+     ============================================================ */
+  function buildHUD() {
+    if (!document.body || document.getElementById('we-hud')) return;
+    const hud = document.createElement('div');
+    hud.id = 'we-hud';
+    hud.innerHTML = `
+      <span class="we-brand">WAR ERA</span>
+      <span class="we-sep">|</span>
+      <span class="we-status"><span class="we-dot"></span> ACTIVE</span>
+      <span class="we-time" id="we-clock">--:--:--</span>
+      <button class="we-settings-btn" id="we-hud-settings" type="button" title="Overlay Settings">⚙</button>
+    `;
+    document.body.appendChild(hud);
+
+    function updateClock() {
+      const el = document.getElementById('we-clock');
+      if (el) el.textContent = new Date().toTimeString().slice(0, 8);
+    }
+    updateClock();
+    setInterval(updateClock, 1000);
+    
+    // Settings button in HUD
+    const settingsBtn = document.getElementById('we-hud-settings');
+    if (settingsBtn) {
+      settingsBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (e.shiftKey) cycleTheme();
+        else togglePanel();
+      });
+    }
+    
+    console.log('[WarEra Overlay] HUD built');
+  }
+
+  /* ============================================================
+     6) FLOATING BUTTON
+     ============================================================ */
+  function buildToggleButton() {
+    if (!document.body || document.getElementById('we-theme-toggle')) return;
+    const btn = document.createElement('button');
+    btn.id = 'we-theme-toggle';
+    btn.type = 'button';
+    btn.title = `Theme: ${THEME_LABELS[state.theme]}`;
+    btn.textContent = '◈';
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (e.shiftKey) cycleTheme();
+      else togglePanel();
+    });
+    document.body.appendChild(btn);
+    console.log('[WarEra Overlay] toggle button built');
+  }
+
+  /* ============================================================
+     7) SETTINGS PANEL
+     ============================================================ */
+  function buildPanel() {
+    if (!document.body || document.getElementById('we-panel')) return;
+    const panel = document.createElement('div');
+    panel.id = 'we-panel';
+    panel.innerHTML = `
+      <div class="we-p-header">
+        <h1>Tactical Overlay</h1>
+        <div class="sub">WARERA.IO // v1.5.0</div>
+        <button class="we-p-close" type="button">✕</button>
+      </div>
+      <div class="we-p-section">
+        <div class="we-p-label">// Color Theme</div>
+        <div class="we-p-themes">
+          <button type="button" class="we-p-theme" data-theme="tactical"><div class="swatch we-sw-tactical"></div>Tactical</button>
+          <button type="button" class="we-p-theme" data-theme="neon"><div class="swatch we-sw-neon"></div>Neon</button>
+          <button type="button" class="we-p-theme" data-theme="sand"><div class="swatch we-sw-sand"></div>Sand</button>
+          <button type="button" class="we-p-theme" data-theme="ghost"><div class="swatch we-sw-ghost"></div>Ghost</button>
+          <button type="button" class="we-p-theme" data-theme="dark"><div class="swatch we-sw-dark"></div>Dark</button>
+          <button type="button" class="we-p-theme" data-theme="blood"><div class="swatch we-sw-blood"></div>Blood</button>
+        </div>
+      </div>
+      <div class="we-p-section">
+        <div class="we-p-label">// Options</div>
+        ${row('opt-soft','Sanfte Farben',state.softColors)}
+        ${row('opt-scanlines','Scanlines',state.scanlines)}
+        ${row('opt-hud','HUD Bar',state.hud)}
+        ${row('opt-grain','Grain',state.grain)}
+      </div>
+      <div class="we-p-hint">Tip: Shift+Click on ◈ = cycle theme</div>
+      <div class="we-p-footer"><span>TACTICAL OVERLAY</span><span>v1.4.0</span></div>
+    `;
+    document.body.appendChild(panel);
+
+    panel.querySelector('.we-p-close').addEventListener('click', () => panel.classList.remove('open'));
+  
